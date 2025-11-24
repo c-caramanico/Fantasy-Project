@@ -2,13 +2,11 @@
 CREATE DATABASE IF NOT EXISTS fantasy_nba;
 USE fantasy_nba;
 
--- =========================================================
 -- 1. USER
 -- Logical: User(userID, email, username, password, role, leagueID)
 -- PK: userID
 -- Alt key: email
 -- FK: leagueID -> League_LeaderBoard(leagueID)
--- =========================================================
 CREATE TABLE `User` (
     userID      INT AUTO_INCREMENT,
     email       VARCHAR(255) NOT NULL,
@@ -18,14 +16,12 @@ CREATE TABLE `User` (
     leagueID    INT,
     PRIMARY KEY (userID),
     UNIQUE KEY uq_user_email (email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- 2. MANAGER
 -- Logical: Manager(managerID, userID, email, username, password, role, desiredSettings)
 -- PK: managerID
 -- FK (later): userID -> User(userID)
--- =========================================================
 CREATE TABLE Manager (
     managerID        INT AUTO_INCREMENT,
     userID           INT NOT NULL,
@@ -35,16 +31,14 @@ CREATE TABLE Manager (
     role             VARCHAR(50)  NOT NULL,
     desiredSettings  TEXT,
     PRIMARY KEY (managerID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- 3. LEAGUE_LEADERBOARD
 -- Logical: League_LeaderBoard(leagueID, leagueName, statType, weight,
 --          seasonYear, maxTeams, leaderBoardID, standings, lastUpdated, managerID)
 -- PK: leagueID
 -- Alt key: leaderBoardID
 -- FK: managerID -> Manager(managerID)
--- =========================================================
 CREATE TABLE League_LeaderBoard (
     leagueID       INT AUTO_INCREMENT,
     leagueName     VARCHAR(100) NOT NULL,
@@ -58,9 +52,8 @@ CREATE TABLE League_LeaderBoard (
     managerID      INT,
     PRIMARY KEY (leagueID),
     UNIQUE KEY uq_leaderBoardID (leaderBoardID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- 4. FANTASYTEAM
 -- Logical: FantasyTeam(teamID, teamName, teamAbbreviation, waiverPriority,
 --          fantasyPoints, leagueID, tradeID, matchupID, userID)
@@ -69,7 +62,6 @@ CREATE TABLE League_LeaderBoard (
 --              tradeID -> Trade, matchupID -> WeeklyMatchup,
 --              userID -> User
 -- Business rule: teamName must be UNIQUE within a league.
--- =========================================================
 CREATE TABLE FantasyTeam (
     teamID            INT AUTO_INCREMENT,
     teamName          VARCHAR(100) NOT NULL,
@@ -84,16 +76,15 @@ CREATE TABLE FantasyTeam (
     -- NEW composite unique: no duplicate teamName within the same league
     CONSTRAINT uq_league_teamName
         UNIQUE (leagueID, teamName)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- 5. WEEKLYMATCHUP
 -- Logical: WeeklyMatchup(matchupID, weekNumber, team1ID, team2ID,
 --          score1, score2, winner, leagueID)
 -- PK: matchupID
 -- FK (later): leagueID -> League_LeaderBoard(leagueID)
 -- winner stores teamID of winner
--- =========================================================
+
 CREATE TABLE WeeklyMatchup (
     matchupID   INT AUTO_INCREMENT,
     weekNumber  INT NOT NULL,
@@ -104,14 +95,14 @@ CREATE TABLE WeeklyMatchup (
     winner      INT,
     leagueID    INT,
     PRIMARY KEY (matchupID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
+
 -- 6. NBAPLAYERS
 -- Logical: NBAPlayers(..., teamID)
 -- PK: playerID
 -- FK (later): teamID -> FantasyTeam(teamID)
--- =========================================================
+
 CREATE TABLE NBAPlayers (
     playerID       INT AUTO_INCREMENT,
     firstName      VARCHAR(50) NOT NULL,
@@ -132,15 +123,14 @@ CREATE TABLE NBAPlayers (
     ftPercentage   DECIMAL(5,2),
     teamID         INT,
     PRIMARY KEY (playerID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- 7. INJURYREPORT
 -- Logical: InjuryReport(injuryReportID, status, severity,
 --          bodyPart, expectedReturnDate, playerID)
 -- PK: injuryReportID
 -- FK (later): playerID -> NBAPlayers(playerID)
--- =========================================================
+
 CREATE TABLE InjuryReport (
     injuryReportID      INT AUTO_INCREMENT,
     status              VARCHAR(50),
@@ -149,14 +139,13 @@ CREATE TABLE InjuryReport (
     expectedReturnDate  DATE,
     playerID            INT NOT NULL,
     PRIMARY KEY (injuryReportID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- 8. WAIVER
 -- Logical: Waiver(waiverID, waiverPriority, waiverType, transactionDate, teamID)
 -- PK: waiverID
 -- FK (later): teamID -> FantasyTeam(teamID)
--- =========================================================
+
 CREATE TABLE Waiver (
     waiverID        INT AUTO_INCREMENT,
     waiverPriority  INT,
@@ -164,15 +153,14 @@ CREATE TABLE Waiver (
     transactionDate DATE,
     teamID          INT,
     PRIMARY KEY (waiverID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- 9. TRADE
 -- Logical: Trade(teamID, playerID, tradeID, tradeDate, tradeStatus)
 -- PK: (teamID, playerID, tradeID)
 -- FKs (later): teamID -> FantasyTeam(teamID), playerID -> NBAPlayers(playerID)
 -- FantasyTeam.tradeID also references Trade(tradeID); so we add UNIQUE on tradeID.
--- =========================================================
+
 CREATE TABLE Trade (
     tradeID      INT NOT NULL,
     teamID       INT NOT NULL,
@@ -181,11 +169,9 @@ CREATE TABLE Trade (
     tradeStatus  VARCHAR(20),
     PRIMARY KEY (teamID, playerID, tradeID),
     UNIQUE KEY uq_tradeID (tradeID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
--- =========================================================
 -- FOREIGN KEYS (added after all tables exist to avoid circular issues)
--- =========================================================
 
 -- Manager.userID -> User.userID
 ALTER TABLE Manager

@@ -1,6 +1,5 @@
 USE fantasy_nba;
 
-
 -- TASK 6: SELECT QUERIES (7 TOTAL)
 
 
@@ -15,8 +14,6 @@ LEFT JOIN FantasyTeam ft
     ON l.leagueID = ft.leagueID
 GROUP BY l.leagueID, l.leagueName
 ORDER BY numTeams DESC, l.leagueName;
-
--- ------------------------------------------------------------
 
 -- Q2: Show all fantasy teams with their owner username & email
 -- Features: JOIN over 3 tables
@@ -34,8 +31,6 @@ JOIN League_LeaderBoard l
     ON ft.leagueID = l.leagueID
 ORDER BY l.leagueName, ft.fantasyPoints DESC, ft.teamName;
 
--- ------------------------------------------------------------
-
 -- Q3: Top 10 players by total points scored, with their fantasy team
 -- Features: JOIN + ORDER BY + LIMIT
 SELECT
@@ -52,8 +47,6 @@ LEFT JOIN FantasyTeam ft
 ORDER BY p.pointScored DESC
 LIMIT 10;
 
--- ------------------------------------------------------------
-
 -- Q4: Players whose total points are above the global average
 -- Features: Scalar subquery in WHERE
 SELECT
@@ -65,8 +58,6 @@ FROM NBAPlayers p
 WHERE p.pointScored >
       (SELECT AVG(pointScored) FROM NBAPlayers)
 ORDER BY p.pointScored DESC;
-
--- ------------------------------------------------------------
 
 -- Q5: Teams that have at least one waiver transaction
 -- Features: EXISTS subquery
@@ -80,8 +71,6 @@ WHERE EXISTS (
     WHERE w.teamID = ft.teamID
 )
 ORDER BY ft.teamName;
-
--- ------------------------------------------------------------
 
 -- Q6: Weekly matchup results with team names and winner team
 -- Features: Multiple JOINs + CASE expression
@@ -103,8 +92,6 @@ LEFT JOIN FantasyTeam t1 ON wm.team1ID = t1.teamID
 LEFT JOIN FantasyTeam t2 ON wm.team2ID = t2.teamID
 LEFT JOIN FantasyTeam tw ON wm.winner  = tw.teamID
 ORDER BY wm.weekNumber, wm.matchupID;
-
--- ------------------------------------------------------------
 
 -- Q7: Players with injury reports and days until expected return
 -- Features: JOIN + date function + ORDER BY
