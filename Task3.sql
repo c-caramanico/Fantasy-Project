@@ -7,7 +7,7 @@ USE fantasy_nba;
 -- Logical: User(userID, email, username, password, role, leagueID)
 -- PK: userID
 -- Alt key: email
--- FK (later): leagueID -> League_LeaderBoard(leagueID)
+-- FK: leagueID -> League_LeaderBoard(leagueID)
 -- =========================================================
 CREATE TABLE `User` (
     userID      INT AUTO_INCREMENT,
@@ -24,11 +24,11 @@ CREATE TABLE `User` (
 -- 2. MANAGER
 -- Logical: Manager(managerID, userID, email, username, password, role, desiredSettings)
 -- PK: managerID
--- (Your logical model doesn’t declare FKs, but userID clearly links to User)
+-- FK (later): userID -> User(userID)
 -- =========================================================
 CREATE TABLE Manager (
     managerID        INT AUTO_INCREMENT,
-    userID           INT,
+    userID           INT NOT NULL,
     email            VARCHAR(255) NOT NULL,
     username         VARCHAR(100) NOT NULL,
     password         VARCHAR(255) NOT NULL,
@@ -65,29 +65,34 @@ CREATE TABLE League_LeaderBoard (
 -- Logical: FantasyTeam(teamID, teamName, teamAbbreviation, waiverPriority,
 --          fantasyPoints, leagueID, tradeID, matchupID, userID)
 -- PK: teamID
--- FKs (later): leagueID -> League_LeaderBoard, tradeID -> Trade,
---              matchupID -> WeeklyMatchup, userID -> User
+-- FKs (later): leagueID -> League_LeaderBoard,
+--              tradeID -> Trade, matchupID -> WeeklyMatchup,
+--              userID -> User
+-- Business rule: teamName must be UNIQUE within a league.
 -- =========================================================
 CREATE TABLE FantasyTeam (
     teamID            INT AUTO_INCREMENT,
     teamName          VARCHAR(100) NOT NULL,
-    teamAbbreviation  VARCHAR(10),
-    waiverPriority    INT,
-    fantasyPoints     INT DEFAULT 0,
-    leagueID          INT,
-    tradeID           INT,
-    matchupID         INT,
-    userID            INT,
-    PRIMARY KEY (teamID)
+    teamAbbreviation  VARCHAR(10)  NOT NULL,
+    waiverPriority    INT          NOT NULL,
+    fantasyPoints     INT          NOT NULL DEFAULT 0,
+    leagueID          INT          NOT NULL,
+    tradeID           INT          NULL,
+    matchupID         INT          NULL,
+    userID            INT          NOT NULL,
+    PRIMARY KEY (teamID),
+    -- NEW composite unique: no duplicate teamName within the same league
+    CONSTRAINT uq_league_teamName
+        UNIQUE (leagueID, teamName)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
 -- 5. WEEKLYMATCHUP
--- Logical: weeklyMatchup(matchupID, weekNumber, team1ID, team2ID,
+-- Logical: WeeklyMatchup(matchupID, weekNumber, team1ID, team2ID,
 --          score1, score2, winner, leagueID)
 -- PK: matchupID
--- FK: leagueID -> League_LeaderBoard(leagueID)
--- winner is derived but we keep it as a stored attribute
+-- FK (later): leagueID -> League_LeaderBoard(leagueID)
+-- winner stores teamID of winner
 -- =========================================================
 CREATE TABLE WeeklyMatchup (
     matchupID   INT AUTO_INCREMENT,
@@ -96,7 +101,7 @@ CREATE TABLE WeeklyMatchup (
     team2ID     INT,
     score1      INT DEFAULT 0,
     score2      INT DEFAULT 0,
-    winner      INT,       -- could store teamID of winner
+    winner      INT,
     leagueID    INT,
     PRIMARY KEY (matchupID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -105,8 +110,7 @@ CREATE TABLE WeeklyMatchup (
 -- 6. NBAPLAYERS
 -- Logical: NBAPlayers(..., teamID)
 -- PK: playerID
--- FK: teamID -> FantasyTeam(teamID)
--- fgPercentage, ftPercentage are marked as derived in your model
+-- FK (later): teamID -> FantasyTeam(teamID)
 -- =========================================================
 CREATE TABLE NBAPlayers (
     playerID       INT AUTO_INCREMENT,
@@ -135,8 +139,7 @@ CREATE TABLE NBAPlayers (
 -- Logical: InjuryReport(injuryReportID, status, severity,
 --          bodyPart, expectedReturnDate, playerID)
 -- PK: injuryReportID
--- FK: playerID -> NBAPlayers(playerID)
--- (Your text had a small typo in the attribute name; using injuryReportID)
+-- FK (later): playerID -> NBAPlayers(playerID)
 -- =========================================================
 CREATE TABLE InjuryReport (
     injuryReportID      INT AUTO_INCREMENT,
@@ -152,7 +155,7 @@ CREATE TABLE InjuryReport (
 -- 8. WAIVER
 -- Logical: Waiver(waiverID, waiverPriority, waiverType, transactionDate, teamID)
 -- PK: waiverID
--- FK: teamID -> FantasyTeam(teamID)
+-- FK (later): teamID -> FantasyTeam(teamID)
 -- =========================================================
 CREATE TABLE Waiver (
     waiverID        INT AUTO_INCREMENT,
@@ -166,10 +169,9 @@ CREATE TABLE Waiver (
 -- =========================================================
 -- 9. TRADE
 -- Logical: Trade(teamID, playerID, tradeID, tradeDate, tradeStatus)
--- PK: teamID, playerID, tradeID
--- FKs: teamID -> FantasyTeam(teamID), playerID -> NBAPlayers(playerID)
--- FantasyTeam also has tradeID referencing Trade(tradeID); to support that
--- we add a UNIQUE constraint on tradeID.
+-- PK: (teamID, playerID, tradeID)
+-- FKs (later): teamID -> FantasyTeam(teamID), playerID -> NBAPlayers(playerID)
+-- FantasyTeam.tradeID also references Trade(tradeID); so we add UNIQUE on tradeID.
 -- =========================================================
 CREATE TABLE Trade (
     tradeID      INT NOT NULL,
@@ -185,80 +187,106 @@ CREATE TABLE Trade (
 -- FOREIGN KEYS (added after all tables exist to avoid circular issues)
 -- =========================================================
 
--- Manager.userID -> User.userID  (not in your text, but clearly intended)
+-- Manager.userID -> User.userID
 ALTER TABLE Manager
     ADD CONSTRAINT fk_Manager_User
     FOREIGN KEY (userID)
-    REFERENCES `User`(userID);
+    REFERENCES `User`(userID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 
 -- League_LeaderBoard.managerID -> Manager.managerID
 ALTER TABLE League_LeaderBoard
     ADD CONSTRAINT fk_League_Manager
     FOREIGN KEY (managerID)
-    REFERENCES Manager(managerID);
+    REFERENCES Manager(managerID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
 
 -- User.leagueID -> League_LeaderBoard.leagueID
 ALTER TABLE `User`
     ADD CONSTRAINT fk_User_League
     FOREIGN KEY (leagueID)
-    REFERENCES League_LeaderBoard(leagueID);
+    REFERENCES League_LeaderBoard(leagueID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
 
 -- FantasyTeam.leagueID -> League_LeaderBoard.leagueID
 ALTER TABLE FantasyTeam
     ADD CONSTRAINT fk_FantasyTeam_League
     FOREIGN KEY (leagueID)
-    REFERENCES League_LeaderBoard(leagueID);
+    REFERENCES League_LeaderBoard(leagueID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 
 -- FantasyTeam.userID -> User.userID
 ALTER TABLE FantasyTeam
     ADD CONSTRAINT fk_FantasyTeam_User
     FOREIGN KEY (userID)
-    REFERENCES `User`(userID);
+    REFERENCES `User`(userID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 
 -- FantasyTeam.matchupID -> WeeklyMatchup.matchupID
 ALTER TABLE FantasyTeam
     ADD CONSTRAINT fk_FantasyTeam_Matchup
     FOREIGN KEY (matchupID)
-    REFERENCES WeeklyMatchup(matchupID);
+    REFERENCES WeeklyMatchup(matchupID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
 
--- FantasyTeam.tradeID -> Trade.tradeID (via unique key)
+-- FantasyTeam.tradeID -> Trade.tradeID
 ALTER TABLE FantasyTeam
     ADD CONSTRAINT fk_FantasyTeam_Trade
     FOREIGN KEY (tradeID)
-    REFERENCES Trade(tradeID);
+    REFERENCES Trade(tradeID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
 
 -- WeeklyMatchup.leagueID -> League_LeaderBoard.leagueID
 ALTER TABLE WeeklyMatchup
     ADD CONSTRAINT fk_WeeklyMatchup_League
     FOREIGN KEY (leagueID)
-    REFERENCES League_LeaderBoard(leagueID);
+    REFERENCES League_LeaderBoard(leagueID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 
 -- NBAPlayers.teamID -> FantasyTeam.teamID
 ALTER TABLE NBAPlayers
     ADD CONSTRAINT fk_NBAPlayers_FantasyTeam
     FOREIGN KEY (teamID)
-    REFERENCES FantasyTeam(teamID);
+    REFERENCES FantasyTeam(teamID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE;
 
 -- InjuryReport.playerID -> NBAPlayers.playerID
 ALTER TABLE InjuryReport
     ADD CONSTRAINT fk_InjuryReport_Player
     FOREIGN KEY (playerID)
-    REFERENCES NBAPlayers(playerID);
+    REFERENCES NBAPlayers(playerID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 
 -- Waiver.teamID -> FantasyTeam.teamID
 ALTER TABLE Waiver
     ADD CONSTRAINT fk_Waiver_FantasyTeam
     FOREIGN KEY (teamID)
-    REFERENCES FantasyTeam(teamID);
+    REFERENCES FantasyTeam(teamID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 
 -- Trade.teamID -> FantasyTeam.teamID
 ALTER TABLE Trade
     ADD CONSTRAINT fk_Trade_FantasyTeam
     FOREIGN KEY (teamID)
-    REFERENCES FantasyTeam(teamID);
+    REFERENCES FantasyTeam(teamID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 
 -- Trade.playerID -> NBAPlayers.playerID
 ALTER TABLE Trade
     ADD CONSTRAINT fk_Trade_Player
     FOREIGN KEY (playerID)
-    REFERENCES NBAPlayers(playerID);
+    REFERENCES NBAPlayers(playerID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;

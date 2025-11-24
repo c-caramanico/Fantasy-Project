@@ -1,8 +1,8 @@
 USE fantasy_nba;
 
--- ============================================================
+
 -- TASK 6: SELECT QUERIES (7 TOTAL)
--- ============================================================
+
 
 -- Q1: List all leagues with how many fantasy teams they have
 -- Features: JOIN + GROUP BY + aggregate

@@ -4,16 +4,6 @@
 -- ================================================================
 USE fantasy_nba;
 
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE League_LeaderBoard;
-TRUNCATE TABLE FantasyTeam;
-TRUNCATE TABLE Manager;
-TRUNCATE TABLE `User`;
-TRUNCATE TABLE NBAPlayers;
-TRUNCATE TABLE InjuryReport;
-TRUNCATE TABLE Waiver;
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- ------------------------------------------------
 -- Insert 1: Insert a league
 -- ------------------------------------------------
@@ -30,31 +20,61 @@ VALUES
 INSERT INTO `User`
     (email, username, password, role, leagueID)
 VALUES
-    ('christian@example.com', 'christian', 'password123',
-     'manager', 1);
+    ('owner1@example.com', 'owner1', 'Password!23', 'manager', 1);
+
 
 -- ------------------------------------------------
 -- Insert 3: Insert a manager for that user
 -- ------------------------------------------------
+
 INSERT INTO Manager
     (userID, email, username, password, role, desiredSettings)
 VALUES
-    (1, 'christian@example.com', 'christian', 'password123',
-     'manager', 'High scoring league');
+    (1, 'owner1@example.com', 'owner1', 'Password!23', 'manager', 'High scoring league');
+
 
 -- ------------------------------------------------
--- Base Fantasy Team (teamID will be 1)
+-- MULTI-ROW INSERT (Interesting Insert #1)
+-- Insert 20 fantasy teams in league 1
+-- Assumes FantasyTeam table is empty so teamID 1–20 map in this order
 -- ------------------------------------------------
 INSERT INTO FantasyTeam
     (teamName, teamAbbreviation, waiverPriority, fantasyPoints,
      leagueID, tradeID, matchupID, userID)
 VALUES
-    ('Christian Ballers', 'CBL', 1, 0,
-     1, NULL, NULL, 1);
+    -- Original 8 teams
+    ('Christian Ballers', 'CBL',  1, 0, 1, NULL, NULL, 1),
+    ('Nathan Ninjas',     'NNJ',  2, 0, 1, NULL, NULL, 1),
+    ('Ben Buckets',       'BBK',  3, 0, 1, NULL, NULL, 1),
+    ('Akshayan Aces',     'AAC',  4, 0, 1, NULL, NULL, 1),
+    ('Cadeau Crushers',   'CCR',  5, 0, 1, NULL, NULL, 1),
+    ('Hayimana Hawks',    'HHK',  6, 0, 1, NULL, NULL, 1),
+    ('Chu Chargers',      'CHU',  7, 0, 1, NULL, NULL, 1),
+    ('Chiu Champs',       'CHI',  8, 0, 1, NULL, NULL, 1),
 
+    -- 12 extra teams (to reach 20 total)
+    ('Thunderous Tacos',       'TTC',  9, 0, 1, NULL, NULL, 1),
+    ('Backboard Bandits',      'BBD', 10, 0, 1, NULL, NULL, 1),
+    ('Rim Rattlers',           'RRT', 11, 0, 1, NULL, NULL, 1),
+    ('Splash Zone Snipers',    'SZS', 12, 0, 1, NULL, NULL, 1),
+    ('Alley-Oop Alchemists',   'AOA', 13, 0, 1, NULL, NULL, 1),
+    ('Baseline Bruisers',      'BLB', 14, 0, 1, NULL, NULL, 1),
+    ('Pick-and-Roll Pirates',  'PRP', 15, 0, 1, NULL, NULL, 1),
+    ('Triple-Double Titans',   'TDT', 16, 0, 1, NULL, NULL, 1),
+    ('Zone Breaker Zebras',    'ZBZ', 17, 0, 1, NULL, NULL, 1),
+    ('Fastbreak Falcons',      'FBF', 18, 0, 1, NULL, NULL, 1),
+    ('Crunch Time Cobras',     'CTC', 19, 0, 1, NULL, NULL, 1),
+    ('Glass Cleaner Gorillas', 'GCG', 20, 0, 1, NULL, NULL, 1);
 
--- Insert one NBA player on teamID = 1
+-- At this point, assuming an empty table:
+-- teamID 1  = Christian Ballers
+-- teamID 2  = Nathan Ninjas
+-- ...
+-- teamID 20 = Glass Cleaner Gorillas
 
+-- ------------------------------------------------
+-- Insert one NBA player on teamID = 1 (Christian Ballers)
+-- ------------------------------------------------
 INSERT INTO NBAPlayers
     (firstName, lastName, position, team, blocks, pointScored,
      gamesPlayed, turnover, assist, fgMade, fgAttempt, ftMade,
@@ -64,40 +84,13 @@ VALUES
      60, 200, 500, 500, 1000, 300, 400, 100,
      50.0, 75.0, 1);
 
+-- ------------------------------------------------
 -- Injury report for playerID = 1
-
+-- ------------------------------------------------
 INSERT INTO InjuryReport
     (status, severity, bodyPart, expectedReturnDate, playerID)
 VALUES
     ('Out', 'High', 'Ankle', '2025-12-01', 1);
-
--- ------------------------------------------------
--- MULTI-ROW INSERT (Interesting Insert #1)
--- ------------------------------------------------
-INSERT INTO FantasyTeam
-    (teamName, teamAbbreviation, waiverPriority, fantasyPoints,
-     leagueID, tradeID, matchupID, userID)
-VALUES
-    ('Christian Ballers', 'CBL', 1, 0, 1, NULL, NULL, 1),
-    ('Nathan Ninjas',     'NNJ', 2, 0, 1, NULL, NULL, 1),
-    ('Ben Buckets',       'BBK', 3, 0, 1, NULL, NULL, 1),
-    ('Akshayan Aces',     'AAC', 4, 0, 1, NULL, NULL, 1),
-    ('Cadeau Crushers',   'CCR', 5, 0, 1, NULL, NULL, 1),
-    ('Hayimana Hawks',    'HHK', 6, 0, 1, NULL, NULL, 1),
-    ('Chu Chargers',      'CHU', 7, 0, 1, NULL, NULL, 1),
-    ('Chiu Champs',       'CHI', 8, 0, 1, NULL, NULL, 1),
-	('Thunderous Tacos',       'TTC', 9, 0, 1, NULL, NULL, 1),
-    ('Backboard Bandits',      'BBD',10, 0, 1, NULL, NULL, 1),
-    ('Rim Rattlers',           'RRT',11, 0, 1, NULL, NULL, 1),
-    ('Splash Zone Snipers',    'SZS',12, 0, 1, NULL, NULL, 1),
-    ('Alley-Oop Alchemists',   'AOA',13, 0, 1, NULL, NULL, 1),
-    ('Baseline Bruisers',      'BLB',14, 0, 1, NULL, NULL, 1),
-    ('Pick-and-Roll Pirates',  'PRP',15, 0, 1, NULL, NULL, 1),
-    ('Triple-Double Titans',   'TDT',16, 0, 1, NULL, NULL, 1),
-    ('Zone Breaker Zebras',    'ZBZ',17, 0, 1, NULL, NULL, 1),
-    ('Fastbreak Falcons',      'FBF',18, 0, 1, NULL, NULL, 1),
-    ('Crunch Time Cobras',     'CTC',19, 0, 1, NULL, NULL, 1),
-    ('Glass Cleaner Gorillas', 'GCG',20, 0, 1, NULL, NULL, 1);
 
 -- ------------------------------------------------
 -- INSERT ... SELECT (Interesting Insert #2)
@@ -111,6 +104,17 @@ SELECT
     teamID
 FROM FantasyTeam
 WHERE leagueID = 1;
+
+-- ------------------------------------------------
+-- SELECTs for screenshots (Task 4 PDF evidence)
+-- ------------------------------------------------
+SELECT * FROM League_LeaderBoard;
+SELECT * FROM `User`;
+SELECT * FROM Manager;
+SELECT * FROM FantasyTeam;
+SELECT * FROM NBAPlayers;
+SELECT * FROM InjuryReport;
+SELECT * FROM Waiver;
 
 -- ------------------------------------------------
 -- End of Task 4
