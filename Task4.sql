@@ -86,8 +86,19 @@ VALUES
     ('Cadeau Crushers', 'CCR', 5, 0, 1, NULL, NULL, 1),
     ('Hayimana Hawks',  'HHK', 6, 0, 1, NULL, NULL, 1),
     ('Chu Chargers',    'CHU', 7, 0, 1, NULL, NULL, 1),
-    ('Chiu Champs',     'CHI', 8, 0, 1, NULL, NULL, 1);
-
+    ('Chiu Champs',     'CHI', 8, 0, 1, NULL, NULL, 1),
+    ('Thunderous Tacos',       'TTC', 1, 0, 1, NULL, NULL, 1),
+    ('Backboard Bandits',      'BBD', 2, 0, 1, NULL, NULL, 1),
+    ('Rim Rattlers',           'RRT', 3, 0, 1, NULL, NULL, 1),
+    ('Splash Zone Snipers',    'SZS', 4, 0, 1, NULL, NULL, 1),
+    ('Alley-Oop Alchemists',   'AOA', 5, 0, 1, NULL, NULL, 1),
+    ('Baseline Bruisers',      'BLB', 6, 0, 1, NULL, NULL, 1),
+    ('Pick-and-Roll Pirates',  'PRP', 7, 0, 1, NULL, NULL, 1),
+    ('Triple-Double Titans',   'TDT', 8, 0, 1, NULL, NULL, 1),
+    ('Zone Breaker Zebras',    'ZBZ', 9, 0, 1, NULL, NULL, 1),
+    ('Fastbreak Falcons',      'FBF',10, 0, 1, NULL, NULL, 1),
+    ('Crunch Time Cobras',     'CTC',11, 0, 1, NULL, NULL, 1),
+    ('Glass Cleaner Gorillas', 'GCG',12, 0, 1, NULL, NULL, 1);
 -- At this point you should have 8 FantasyTeam rows total.
 
 -- ------------------------------------------------
